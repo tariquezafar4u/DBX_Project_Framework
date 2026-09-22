@@ -2,7 +2,7 @@
 # One workspace only - no per-environment sections needed.
 
 databricks:
-  workspace_url: "https://<your-databricks-workspace>.azuredatabricks.net"
+  workspace_url: "https://adb-7405614984857704.4.azuredatabricks.net/"
   cluster:
     node_type_id: "Standard_DS3_v2"
     spark_version: "14.3.x-scala2.12"

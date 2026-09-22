@@ -1,0 +1,36 @@
+name: Deploy DAT-EDIP Framework to Databricks
+
+# Simple single-environment deployment: push to main deploys straight to the
+# one Databricks workspace configured via repo secrets.
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+    steps:
+      - name: Checkout DAT-EDIP framework
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Databricks CLI
+        run: pip install databricks-cli
+
+      - name: Sync framework source to Databricks Workspace
+        run: |
+          databricks workspace import_dir . /Shared/dat_edip_framework --overwrite
+
+      - name: Create or update the DAT-EDIP job
+        run: |
+          python scripts/register_job.py \
+            --job-config config/framework_config.yaml \
+            --notebook-root /Shared/dat_edip_framework/notebooks

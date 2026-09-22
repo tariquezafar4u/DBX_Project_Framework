@@ -1,0 +1,30 @@
+# Framework-level configuration for the learning DAT-EDIP setup.
+# One workspace only - no per-environment sections needed.
+
+databricks:
+  workspace_url: "https://<your-databricks-workspace>.azuredatabricks.net"
+  cluster:
+    node_type_id: "Standard_DS3_v2"
+    spark_version: "14.3.x-scala2.12"
+    num_workers: 1
+    autotermination_minutes: 30
+
+job:
+  name: "dat_edip_learning_pipeline"
+  notebook_root: "/Shared/dat_edip_framework/notebooks"
+  notebooks:
+    - path: "01_volume_to_volume"
+      key: "volume_to_volume"
+    - path: "02_raw_manager"
+      key: "raw_manager"
+      depends_on: ["volume_to_volume"]
+    - path: "03_stage_manager"
+      key: "stage_manager"
+      depends_on: ["raw_manager"]
+
+contract_repo:
+  # Where the framework looks for the data contract at run time.
+  # For this learning project this can be a local path, a Databricks Repo
+  # checkout, or a Volume path where the contract repo was copied.
+  local_path: "../data-contract-repo"
+  contracts_subfolder: "contracts"

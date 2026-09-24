@@ -1,0 +1,49 @@
+bundle:
+  name: learning-dat-edip-framework
+
+workspace:
+  # Notebooks hardcode sys.path to /Workspace/Shared/dat_edip_framework/src.
+  file_path: /Workspace/Users/tariquemdzafar@outlook.com/dat_edip_framework
+
+sync:
+  exclude:
+    - ".github/**"
+
+variables:
+  product_name:
+    default: customer_orders
+  contract_repo_root:
+    default: /Workspace/Shared/data_contract_repo
+
+resources:
+  jobs:
+    learning_pipeline:
+      name: dat_edip_learning_pipeline_${var.product_name}
+      tasks:
+        - task_key: volume_to_volume
+          notebook_task:
+            notebook_path: ./notebooks/01_volume_to_volume.py
+            base_parameters:
+              product_name: ${var.product_name}
+              contract_repo_root: ${var.contract_repo_root}
+        - task_key: raw_manager
+          depends_on:
+            - task_key: volume_to_volume
+          notebook_task:
+            notebook_path: ./notebooks/02_raw_manager.py
+            base_parameters:
+              product_name: ${var.product_name}
+              contract_repo_root: ${var.contract_repo_root}
+        - task_key: stage_manager
+          depends_on:
+            - task_key: raw_manager
+          notebook_task:
+            notebook_path: ./notebooks/03_stage_manager.py
+            base_parameters:
+              product_name: ${var.product_name}
+              contract_repo_root: ${var.contract_repo_root}
+
+targets:
+  vscodedev:
+    mode: development
+    default: true

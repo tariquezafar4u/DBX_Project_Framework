@@ -48,12 +48,19 @@ src/dat_edip/
 1. Deploy `data-contract-repo` first (just needs to exist somewhere the framework
    can read from — a Databricks Repo, Volume, or local checkout for this exercise).
 2. Deploy this `dat-edip-framework` repo (GitHub Actions workflow -> Databricks).
-3. Run `scripts/deploy_and_run.ps1 -ProductName customer_orders`.
+3. Authenticate the Databricks CLI and review the bundle plan:
+   ```bat
+   databricks auth login --host "https://adb-7405614984857704.4.azuredatabricks.net/" --profile dev
+   deploy_learning.bat plan
+   ```
+4. Deploy the bundle with `deploy_learning.bat`.
+5. For the legacy product-specific workflow, run
+   `deploy_learning.bat customer_orders`.
    - It reads `contracts/customer_orders/contract.yaml` from the contract repo.
    - It reads `config/framework_config.yaml` from this repo.
    - It creates/updates a Databricks Job made of the three notebooks in order.
    - It triggers a run of that job.
-4. The Databricks Job runs: Volume→Volume copy -> Raw Manager -> Stage Manager
+6. The Databricks Job runs: Volume→Volume copy -> Raw Manager -> Stage Manager
    (with validations) -> data lands in the Stage table.
 
 ## Notes

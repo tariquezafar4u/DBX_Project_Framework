@@ -17,6 +17,13 @@ jobs:
       - name: Checkout DAT-EDIP framework
         uses: actions/checkout@v4
 
+      - name: Checkout data contracts
+        uses: actions/checkout@v4
+        with:
+          repository: tariquezafar4u/DBX_Data_Contract
+          ref: main
+          path: data-contract-repo
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -27,10 +34,18 @@ jobs:
 
       - name: Sync framework source to Databricks Workspace
         run: |
-          databricks workspace import_dir . /Shared/dat_edip_framework --overwrite
+          databricks workspace import-dir . /Shared/dat_edip_framework --overwrite
+
+      - name: Sync data contracts to Databricks Workspace
+        run: |
+          test -f data-contract-repo/contracts/employee_details/contract.yaml
+          databricks workspace import-dir data-contract-repo /Shared/data_contract_repo --overwrite
+          databricks workspace list /Shared/data_contract_repo/contracts/employee_details | grep -q contract.yaml
 
       - name: Create or update the DAT-EDIP job
         run: |
           python scripts/register_job.py \
             --job-config config/framework_config.yaml \
-            --notebook-root /Shared/dat_edip_framework/notebooks
+            --notebook-root /Shared/dat_edip_framework/notebooks \
+            --product-name employee_details \
+            --contract-repo-root /Shared/data_contract_repo

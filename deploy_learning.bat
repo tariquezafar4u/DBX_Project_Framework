@@ -5,6 +5,12 @@ cd /d "%~dp0"
 
 set "DatabricksProfile=dev"
 set "BundleTarget=vscodedev"
+set "ProductName=employee_details"
+set "ContractWorkspacePath=/Shared/data_contract_repo"
+set "ContractRepoPath=%CONTRACT_REPO_PATH%"
+
+if not defined ContractRepoPath if exist "%~dp0..\DBX_Data_Contract" set "ContractRepoPath=%~dp0..\DBX_Data_Contract"
+if not defined ContractRepoPath if exist "%~dp0..\data-contract-repo" set "ContractRepoPath=%~dp0..\data-contract-repo"
 
 if /I "%~1"=="plan" (
     echo == DAT-EDIP learning bundle plan ==
@@ -18,6 +24,25 @@ if /I "%~1"=="plan" (
 
 if "%~1"=="" (
     echo == DAT-EDIP learning bundle deploy ==
+    if not defined ContractRepoPath (
+        echo Contract repository not found. Set CONTRACT_REPO_PATH or place DBX_Data_Contract beside this repository.
+        exit /b 1
+    )
+    if not exist "%ContractRepoPath%\contracts\%ProductName%\contract.yaml" (
+        echo Contract file not found: %ContractRepoPath%\contracts\%ProductName%\contract.yaml
+        exit /b 1
+    )
+    echo Uploading contract repository to %ContractWorkspacePath%...
+    databricks workspace import-dir "%ContractRepoPath%" "%ContractWorkspacePath%" --overwrite --profile "%DatabricksProfile%"
+    if errorlevel 1 (
+        echo Contract repository upload failed with exit code !ERRORLEVEL!
+        exit /b !ERRORLEVEL!
+    )
+    databricks workspace list "%ContractWorkspacePath%/contracts/%ProductName%" --profile "%DatabricksProfile%" | findstr /I "contract.yaml" >nul
+    if errorlevel 1 (
+        echo Contract verification failed: %ContractWorkspacePath%/contracts/%ProductName%/contract.yaml was not uploaded.
+        exit /b 1
+    )
     databricks bundle deploy --profile "%DatabricksProfile%" --target "%BundleTarget%"
     if errorlevel 1 (
         echo Databricks bundle deploy failed with exit code !ERRORLEVEL!
@@ -67,7 +92,7 @@ if not "%ContractRepoPath:~1,1%"==":" if not "%ContractRepoPath:~0,1%"=="\" if n
 
 set "ContractFile=%ContractRepoPath%\contracts\%ProductName%\contract.yaml"
 if not exist "%ContractFile%" (
-    echo Contract file not found: %ContractFile%. Deploy the data-contract-repo first and check the contract repo path.
+    echo Contract file not found: %ContractFile%. Check CONTRACT_REPO_PATH or the DBX_Data_Contract sibling repository.
     exit /b 1
 )
 
@@ -78,6 +103,18 @@ echo Step 1/2: Registering ^(creating/updating^) the Databricks job...
 
 set "NotebookRoot=/Shared/dat_edip_framework/notebooks"
 set "ContractRepoRootOnWorkspace=/Shared/data_contract_repo"
+
+echo Uploading contract repository to %ContractWorkspacePath%...
+databricks workspace import-dir "%ContractRepoPath%" "%ContractWorkspacePath%" --overwrite --profile "%DatabricksProfile%"
+if errorlevel 1 (
+    echo Contract repository upload failed with exit code !ERRORLEVEL!
+    exit /b !ERRORLEVEL!
+)
+databricks workspace list "%ContractWorkspacePath%/contracts/%ProductName%" --profile "%DatabricksProfile%" | findstr /I "contract.yaml" >nul
+if errorlevel 1 (
+    echo Contract verification failed: %ContractWorkspacePath%/contracts/%ProductName%/contract.yaml was not uploaded.
+    exit /b 1
+)
 
 python scripts/register_job.py --job-config "%FrameworkConfigPath%" --notebook-root "%NotebookRoot%" --product-name "%ProductName%" --contract-repo-root "%ContractRepoRootOnWorkspace%" %PrintOnly%
 if errorlevel 1 (

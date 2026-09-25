@@ -2,7 +2,7 @@
 
 A **simplified learning version** of the DAT-EDIP framework. It shows the core
 architecture — Volume→Volume connector, Raw Manager, Stage Manager, and
-validations — driven by a data contract from the companion `data-contract-repo`.
+validations — driven by a data contract from the companion `DBX_Data_Contract`.
 
 ## Flow
 
@@ -45,9 +45,10 @@ src/dat_edip/
 
 ## Learning flow (matches the overall objective)
 
-1. Deploy `data-contract-repo` first (just needs to exist somewhere the framework
-   can read from — a Databricks Repo, Volume, or local checkout for this exercise).
-2. Deploy this `dat-edip-framework` repo (GitHub Actions workflow -> Databricks).
+1. Keep the `DBX_Data_Contract` repository beside this repository locally, or let
+   the GitHub Action check it out automatically.
+2. Deploy this `dat-edip-framework` repo (the deployment uploads the contracts
+   to `/Shared/data_contract_repo` before creating or updating the job).
 3. Authenticate the Databricks CLI and review the bundle plan:
    ```bat
    databricks auth login --host "https://adb-7405614984857704.4.azuredatabricks.net/" --profile dev
@@ -56,7 +57,7 @@ src/dat_edip/
 4. Deploy the bundle with `deploy_learning.bat`.
 5. For the legacy product-specific workflow, run
    `deploy_learning.bat customer_orders`.
-   - It reads `contracts/customer_orders/contract.yaml` from the contract repo.
+   - It reads `contracts/employee_details/contract.yaml` from the contract repo.
    - It reads `config/framework_config.yaml` from this repo.
    - It creates/updates a Databricks Job made of the three notebooks in order.
    - It triggers a run of that job.

@@ -9,13 +9,15 @@
 # COMMAND ----------
 dbutils.widgets.text("product_name", "customer_orders")
 dbutils.widgets.text("contract_repo_root", "/Workspace/Shared/data_contract_repo")
+dbutils.widgets.text("framework_root", "/Workspace/Users/tariquemdzafar@outlook.com/dat_edip_framework")
 
 product_name = dbutils.widgets.get("product_name")
 contract_repo_root = dbutils.widgets.get("contract_repo_root")
+framework_root = dbutils.widgets.get("framework_root")
 
 # COMMAND ----------
 import sys
-sys.path.append("/Workspace/Shared/dat_edip_framework/src")
+sys.path.insert(0, f"{framework_root}/src")
 
 from dat_edip.contract_loader import load_contract
 from dat_edip.stage_manager import load_stage

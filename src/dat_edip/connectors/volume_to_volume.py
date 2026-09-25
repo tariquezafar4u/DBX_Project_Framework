@@ -20,6 +20,13 @@ def copy_volume_to_volume(source_path: str, target_path: str, dbutils=None) -> i
     back to local filesystem copy so this can be learned/tested off-platform.
     """
     if dbutils is not None:
+        # Volumes do not materialize empty subdirectories. Create the landing
+        # directory on first use so an empty input does not fail the job.
+        dbutils.fs.mkdirs(source_path)
+        source_entries = dbutils.fs.ls(source_path)
+        if not source_entries:
+            dbutils.fs.mkdirs(target_path)
+            return 0
         dbutils.fs.mkdirs(target_path)
         dbutils.fs.cp(source_path, target_path, recurse=True)
         files = dbutils.fs.ls(target_path)

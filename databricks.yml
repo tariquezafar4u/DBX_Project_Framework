@@ -11,7 +11,7 @@ sync:
 
 variables:
   product_name:
-    default: customer_orders
+    default: employee_details
   contract_repo_root:
     default: /Workspace/Shared/data_contract_repo
 

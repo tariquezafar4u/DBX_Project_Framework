@@ -32,6 +32,14 @@ if "%~1"=="" (
         echo Contract file not found: %ContractRepoPath%\contracts\%ProductName%\contract.yaml
         exit /b 1
     )
+    if not exist "%ContractRepoPath%\contracts\employee_details\contract.yaml" (
+        echo Contract file not found: %ContractRepoPath%\contracts\employee_details\contract.yaml
+        exit /b 1
+    )
+    if not exist "%ContractRepoPath%\contracts\department_details\contract.yaml" (
+        echo Contract file not found: %ContractRepoPath%\contracts\department_details\contract.yaml
+        exit /b 1
+    )
     echo Uploading contract repository to %ContractWorkspacePath%...
     databricks workspace import-dir "%ContractRepoPath%" "%ContractWorkspacePath%" --overwrite --profile "%DatabricksProfile%"
     if errorlevel 1 (
@@ -43,11 +51,19 @@ if "%~1"=="" (
         echo Contract verification failed: %ContractWorkspacePath%/contracts/%ProductName%/contract.yaml was not uploaded.
         exit /b 1
     )
+    databricks workspace list "%ContractWorkspacePath%/contracts/employee_details" --profile "%DatabricksProfile%" | findstr /I "contract.yaml" >nul
+    if errorlevel 1 exit /b 1
+    databricks workspace list "%ContractWorkspacePath%/contracts/department_details" --profile "%DatabricksProfile%" | findstr /I "contract.yaml" >nul
+    if errorlevel 1 exit /b 1
     databricks bundle deploy --profile "%DatabricksProfile%" --target "%BundleTarget%"
     if errorlevel 1 (
         echo Databricks bundle deploy failed with exit code !ERRORLEVEL!
         exit /b !ERRORLEVEL!
     )
+    databricks bundle run employee_pipeline --profile "%DatabricksProfile%" --target "%BundleTarget%"
+    if errorlevel 1 exit /b !ERRORLEVEL!
+    databricks bundle run department_pipeline --profile "%DatabricksProfile%" --target "%BundleTarget%"
+    if errorlevel 1 exit /b !ERRORLEVEL!
     exit /b 0
 )
 

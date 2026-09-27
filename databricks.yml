@@ -19,14 +19,14 @@ variables:
 
 resources:
   jobs:
-    learning_pipeline:
-      name: dat_edip_learning_pipeline_${var.product_name}
+    employee_pipeline:
+      name: dat_edip_learning_pipeline_employee_details
       tasks:
         - task_key: volume_to_volume
           notebook_task:
             notebook_path: ./notebooks/01_volume_to_volume.py
             base_parameters:
-              product_name: ${var.product_name}
+              product_name: employee_details
               contract_repo_root: ${var.contract_repo_root}
               framework_root: ${var.framework_root}
         - task_key: raw_manager
@@ -35,7 +35,7 @@ resources:
           notebook_task:
             notebook_path: ./notebooks/02_raw_manager.py
             base_parameters:
-              product_name: ${var.product_name}
+              product_name: employee_details
               contract_repo_root: ${var.contract_repo_root}
               framework_root: ${var.framework_root}
         - task_key: stage_manager
@@ -44,7 +44,35 @@ resources:
           notebook_task:
             notebook_path: ./notebooks/03_stage_manager.py
             base_parameters:
-              product_name: ${var.product_name}
+              product_name: employee_details
+              contract_repo_root: ${var.contract_repo_root}
+              framework_root: ${var.framework_root}
+    department_pipeline:
+      name: dat_edip_learning_pipeline_department_details
+      tasks:
+        - task_key: volume_to_volume
+          notebook_task:
+            notebook_path: ./notebooks/01_volume_to_volume.py
+            base_parameters:
+              product_name: department_details
+              contract_repo_root: ${var.contract_repo_root}
+              framework_root: ${var.framework_root}
+        - task_key: raw_manager
+          depends_on:
+            - task_key: volume_to_volume
+          notebook_task:
+            notebook_path: ./notebooks/02_raw_manager.py
+            base_parameters:
+              product_name: department_details
+              contract_repo_root: ${var.contract_repo_root}
+              framework_root: ${var.framework_root}
+        - task_key: stage_manager
+          depends_on:
+            - task_key: raw_manager
+          notebook_task:
+            notebook_path: ./notebooks/03_stage_manager.py
+            base_parameters:
+              product_name: department_details
               contract_repo_root: ${var.contract_repo_root}
               framework_root: ${var.framework_root}
 

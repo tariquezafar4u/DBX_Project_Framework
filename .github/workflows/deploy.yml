@@ -24,13 +24,14 @@ jobs:
           ref: main
           path: data-contract-repo
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
       - name: Install Databricks CLI
-        run: pip install databricks-cli
+        uses: databricks/setup-cli@v1.18.0
+
+      - name: Verify Databricks deployment credentials
+        run: |
+          test -n "$DATABRICKS_HOST" || { echo "::error::Set the DATABRICKS_HOST GitHub Actions secret."; exit 1; }
+          test -n "$DATABRICKS_TOKEN" || { echo "::error::Set the DATABRICKS_TOKEN GitHub Actions secret."; exit 1; }
+          databricks version
 
       - name: Sync framework source to Databricks Workspace
         run: |
@@ -39,13 +40,14 @@ jobs:
       - name: Sync data contracts to Databricks Workspace
         run: |
           test -f data-contract-repo/contracts/employee_details/contract.yaml
+          test -f data-contract-repo/contracts/department_details/contract.yaml
+          grep -q '^product_name: department$' data-contract-repo/contracts/department_details/contract.yaml
           databricks workspace import-dir data-contract-repo /Shared/data_contract_repo --overwrite
           databricks workspace list /Shared/data_contract_repo/contracts/employee_details | grep -q contract.yaml
+          databricks workspace list /Shared/data_contract_repo/contracts/department_details | grep -q contract.yaml
 
-      - name: Create or update the DAT-EDIP job
+      - name: Deploy and run both DAT-EDIP jobs
         run: |
-          python scripts/register_job.py \
-            --job-config config/framework_config.yaml \
-            --notebook-root /Shared/dat_edip_framework/notebooks \
-            --product-name employee_details \
-            --contract-repo-root /Shared/data_contract_repo
+          databricks bundle deploy --target vscodedev
+          databricks bundle run employee_pipeline --target vscodedev
+          databricks bundle run department_pipeline --target vscodedev

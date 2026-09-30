@@ -27,8 +27,11 @@ contract = load_contract(contract_repo_root, product_name)
 print(f"Loaded contract for product: {contract.product_name} (owner: {contract.developer_name})")
 
 # COMMAND ----------
-source_path = contract.source["path"]
-target_path = contract.target["volume"]["path"]
+if contract.source.get("type") == "api":
+    print("API source detected; API data will be fetched by the Raw Manager.")
+else:
+    source_path = contract.source["path"]
+    target_path = contract.target["volume"]["path"]
 
-copied_count = copy_volume_to_volume(source_path, target_path, dbutils=dbutils)
-print(f"Copied {copied_count} file(s) from {source_path} to {target_path}")
+    copied_count = copy_volume_to_volume(source_path, target_path, dbutils=dbutils)
+    print(f"Copied {copied_count} file(s) from {source_path} to {target_path}")

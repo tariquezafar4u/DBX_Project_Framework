@@ -1,9 +1,9 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # 02 - Raw Manager
-# MAGIC Reads the files staged in the processing Volume using the schema defined in
-# MAGIC the data contract, and appends them into the Raw Delta table. No data
-# MAGIC validation happens at this layer - Raw is a faithful copy of the source.
+# MAGIC Reads files staged in the processing Volume or fetches the contract's API
+# MAGIC source, then appends records into the Raw Delta table. No data validation
+# MAGIC happens at this layer - Raw is a faithful copy of the source.
 
 # COMMAND ----------
 dbutils.widgets.text("product_name", "customer_orders")
@@ -28,6 +28,6 @@ raw_catalog = contract.target["raw"]["catalog"]
 raw_schema = contract.target["raw"]["schema"]
 spark.sql(f"CREATE SCHEMA IF NOT EXISTS {raw_catalog}.{raw_schema}")
 
-df = load_raw(spark, contract)
+df = load_raw(spark, contract, dbutils=dbutils)
 print(f"Loaded {df.count()} row(s) into raw table "
       f"{contract.target['raw']['catalog']}.{contract.target['raw']['schema']}.{contract.target['raw']['table']}")

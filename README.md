@@ -64,6 +64,12 @@ src/dat_edip/
 6. The Databricks Job runs: Volume→Volume copy -> Raw Manager -> Stage Manager
    (with validations) -> data lands in the Stage table.
 
+The `weather` product uses the OpenWeather API contract in
+`DBX_Data_Contract/contracts/weather/contract.yml`. Before running it, configure
+the Databricks secret scope and key named by that contract (currently
+`api-scope` / `openweather-api-key`). The weather pipeline retrieves one API
+observation in the Raw Manager and writes it to the contract's raw table.
+
 ## Notes
 
 This is intentionally minimal: no multi-environment promotion, no secret

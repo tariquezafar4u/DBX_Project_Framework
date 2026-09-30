@@ -1,5 +1,5 @@
 """
-Loads a data contract (contract.yaml) into a plain Python object the rest of
+Loads a data contract (contract.yaml or contract.yml) into a plain Python object the rest of
 the framework can use. Kept dependency-light: only PyYAML is required.
 """
 from __future__ import annotations
@@ -46,11 +46,19 @@ def load_contract(contract_repo_root: str, product_name: str) -> DataContract:
     Read contracts/<product_name>/contract.yaml under the given contract repo
     root and return a DataContract instance.
     """
-    contract_path = os.path.join(
-        contract_repo_root, "contracts", product_name, "contract.yaml"
+    contract_dir = os.path.join(contract_repo_root, "contracts", product_name)
+    contract_paths = [
+        os.path.join(contract_dir, "contract.yaml"),
+        os.path.join(contract_dir, "contract.yml"),
+    ]
+    contract_path = next(
+        (path for path in contract_paths if os.path.isfile(path)), None
     )
-    if not os.path.exists(contract_path):
-        raise FileNotFoundError(f"No contract found for product '{product_name}' at {contract_path}")
+    if contract_path is None:
+        expected_paths = " or ".join(contract_paths)
+        raise FileNotFoundError(
+            f"No contract found for product '{product_name}' at {expected_paths}"
+        )
 
     raw: dict[str, Any] = _load_yaml(contract_path)
 

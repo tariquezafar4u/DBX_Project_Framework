@@ -54,13 +54,24 @@ def build_spark_schema(contract: DataContract):
     return StructType(fields)
 
 
-def load_raw(spark, contract: DataContract):
+def load_raw(spark, contract: DataContract, dbutils=None):
     """
-    Read files from the target processing Volume path (contract.target.volume)
-    and append into the raw table (contract.target.raw), using the contract
-    schema. Returns the DataFrame that was written for convenience in tests.
+    Read contract-defined volume files or fetch an API record, then append
+    the data to the raw table using the contract schema. Returns the DataFrame
+    that was written for convenience in tests.
     """
     schema = build_spark_schema(contract)
+    if contract.source.get("type") == "api":
+        from dat_edip.connectors.openweather import fetch_weather_record
+
+        if dbutils is None:
+            raise ValueError("Databricks dbutils is required for API authentication")
+        record = fetch_weather_record(contract, dbutils)
+        df = spark.createDataFrame([record], schema=schema)
+        raw_table = _full_table_name(contract.target["raw"])
+        df.write.mode("append").format("delta").saveAsTable(raw_table)
+        return df
+
     volume_path = contract.target["volume"]["path"]
     file_format = contract.source.get("file_format", "csv")
     options = contract.source.get("options", {})

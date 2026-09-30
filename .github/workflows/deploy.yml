@@ -41,13 +41,17 @@ jobs:
         run: |
           test -f data-contract-repo/contracts/employee_details/contract.yaml
           test -f data-contract-repo/contracts/department_details/contract.yaml
+          test -f data-contract-repo/contracts/weather/contract.yml
           grep -q '^product_name: department$' data-contract-repo/contracts/department_details/contract.yaml
+          grep -q '^product_name: weather$' data-contract-repo/contracts/weather/contract.yml
           databricks workspace import-dir data-contract-repo /Shared/data_contract_repo --overwrite
           databricks workspace list /Shared/data_contract_repo/contracts/employee_details | grep -q contract.yaml
           databricks workspace list /Shared/data_contract_repo/contracts/department_details | grep -q contract.yaml
+          databricks workspace list /Shared/data_contract_repo/contracts/weather | grep -q contract.yml
 
-      - name: Deploy and run both DAT-EDIP jobs
+      - name: Deploy and run all DAT-EDIP jobs
         run: |
           databricks bundle deploy --target vscodedev
           databricks bundle run employee_pipeline --target vscodedev
           databricks bundle run department_pipeline --target vscodedev
+          databricks bundle run weather_pipeline --target vscodedev
